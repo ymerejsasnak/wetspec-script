@@ -1,10 +1,11 @@
 '''
 Jeremy Kansas
-CS 350
-Final Project I
+CS 499
+Artifact 2 part 1 of 2
+Raspberry Pi "WetSpec" Script
+Used as part of Category 2 - Data Structures and Algorithms
 '''
 
-#test
 
 import grovepi
 from time import sleep

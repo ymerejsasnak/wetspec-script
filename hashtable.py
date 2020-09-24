@@ -1,16 +1,13 @@
 '''
 Jeremy Kansas
-
-
-
-hashtable cat 2 wetpsec
-
+CS 499
+Artifact 2 part 2 of 2
+Raspberry Pi "WetSpec" Script - Hash Table Implementation
+Used as part of Category 2 - Data Structures and Algorithms
 '''
 
+
 from datetime import datetime
-
-
-
 
 
 class HashTableJK():
