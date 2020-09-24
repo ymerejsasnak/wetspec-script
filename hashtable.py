@@ -16,7 +16,7 @@ class HashTableJK():
         self.current_size = 101
         self.table = [None] * self.current_size
 
-    def get_hash(self, key: datetime):
+    def _get_hash(self, key: datetime):
         #convert to fully numeric value
         time = key.timestamp()
         #shift decimal point 6 to the right (microsecond digits in timestamp are right of decimal) and convert to integer
@@ -26,9 +26,29 @@ class HashTableJK():
 
         return index
 
-    def store_data(self, index: int, data: list):
+    def _store_data(self, index: int, data: list):
         self.table[index] = data
+
+
+
+
+
+    def insert(self, key: datetime, data: list):
+        #get Hash
+        #check for collision
+        #resolve if necessary
+        #check size
+        #resize if nec
         pass
+
+
+    def get(self, key: datetime):
+        #get Hash
+        #remember to check for potential linear probe store
+        #return data if found else error/message/default?
+        pass
+
+
 
 
 
@@ -40,4 +60,4 @@ if __name__ == '__main__':
     for i in range(10):
         d = datetime.now()
         print(d)
-        print(ht.get_hash(d))
+        print(ht._get_hash(d))
