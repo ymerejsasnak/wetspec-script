@@ -23,15 +23,32 @@ class HashTableJK():
         self.current_size = init_size
         self.table = [None] * self.current_size
 
+        self.collision_count = 0
+        self.probe_count = 0
 
     def __str__(self):
         output = []
+        hashes = []
         for item in self.table:
             if item: # ie not None
-                output.append(str(item) + '\n')
+                next_hash = self._get_hash(item[0])
+                if next_hash in hashes:
+                    collide = '*'
+                else:
+                    collide = ''
+                    hashes.append(next_hash)
+                output.append(collide + str(next_hash) + '   ' + str(item) + '\n')
             else:
                 output.append('---\n')
         return ''.join(output)
+
+    def brief(self):
+        for item in self.table:
+            if item:
+                print('0', end='')
+            else:
+                print('_', end='')
+        print()
 
     def _get_hash(self, key: datetime):
         # zero out everything but date and convert it to an integer
@@ -46,8 +63,8 @@ class HashTableJK():
         # ex: 8:00 am is 16, 8:30 is 17, 9am is 18, etc.
         halfhour = hour * 2 + minute//30
 
-        # add date and halfhour
-        value = date + halfhour
+        # transform both values mathematically to get hash value
+        value = date // halfhour + halfhour * 11300000000
 
         #mod by table size to get actual index value
         index = int(value) % self.current_size
@@ -74,8 +91,11 @@ class HashTableJK():
         index = self._get_hash(key)
 
         # if collision, increment index until there is no collision (linear probe)
+        if self._collision(index):
+            self.collision_count += 1
         while (self._collision(index)):
             index = (index + 1) % self.current_size
+            self.probe_count += 1
 
         self._store_data(index, data)
 
@@ -114,7 +134,7 @@ def create_dummy(total):
       # check if daylight hours and a little random to simulate lack of 'daylight' conditions (ie cloudy)
       if d.hour >= 8 and d.hour <=20 and r.random() > 0.2:
           # add new dummy data
-          data.append([d, r.randint(30, 100), r.randint(0, 100)])
+          data.append([d, r.randint(0, 100), r.randint(0, 100)])
 
       # increment time
       d += timedelta(minutes=30)
@@ -128,9 +148,10 @@ def create_dummy(total):
 
 if __name__ == '__main__':
 
-    ht = HashTableJK(29)
+    ht = HashTableJK(14009)
 
-    dummy = create_dummy(15)
+
+    dummy = create_dummy(7000)
 
 
     for item in dummy:
@@ -138,11 +159,8 @@ if __name__ == '__main__':
 
     print('\n\n')
     print(ht)
-    print('\n\n')
+    print()
 
-    #print(''.join([str(x) if x > 0 else '.' for x in test]))
-    #print('entries:')
-    #print(sum(test))
-    #print('collision percent:')
-    #print(sum([x-1 if x > 1 else 0 for x in test])/sum(test))
-    
+    print("Inserts: {}\nCollisions: {}\nProbes: {}\n".format(7000, ht.collision_count, ht.probe_count))
+
+    ht.brief()
