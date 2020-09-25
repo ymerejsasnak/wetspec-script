@@ -24,10 +24,19 @@ class HashTableJK():
         self.table = [None] * self.current_size
 
 
+    def __str__(self):
+        output = []
+        for item in self.table:
+            if item: # ie not None
+                output.append(str(item) + '\n')
+            else:
+                output.append('---\n')
+        return ''.join(output)
+
     def _get_hash(self, key: datetime):
         # zero out everything but date and convert it to an integer
         date = key.replace(hour=0, minute=0, second=0, microsecond=0)
-        date = int(key.timestamp())
+        date = int(date.timestamp())
 
         # then get hour and minute values separately
         hour = key.hour
@@ -35,7 +44,7 @@ class HashTableJK():
 
         # conver to single integer indicating which half hour segment we are in
         # ex: 8:00 am is 16, 8:30 is 17, 9am is 18, etc.
-        halfhour = h * 2 + m//30
+        halfhour = hour * 2 + minute//30
 
         # add date and halfhour
         value = date + halfhour
@@ -57,13 +66,16 @@ class HashTableJK():
 
 
 
-    def insert(self, key: datetime, data: list):
+    def insert(self, data: list):
+        # get key from data (1st item in list is datetime)
+        key = data[0]
+
         # hash key and get index
         index = self._get_hash(key)
 
         # if collision, increment index until there is no collision (linear probe)
-        while (_collision(index)):
-            index++
+        while (self._collision(index)):
+            index = (index + 1) % self.current_size
 
         self._store_data(index, data)
 
@@ -83,9 +95,32 @@ class HashTableJK():
 
 
 
+
 # function to make dummy data
 
-#def create_dummy(count):
+def create_dummy(total):
+    data = []
+
+    # arbitrary starting point, randomized a bit
+    d = datetime.now()
+    d += timedelta(minutes=r.randint(-100000, 100000))
+
+    # then 0 the minutes so we're on the 0/30 interval, and 0 sec and micro because unused
+    d = d.replace(minute=0, second=0, microsecond=0)
+
+    # loop until desired # of data points collected
+    while (len(data) < total):
+
+      # check if daylight hours and a little random to simulate lack of 'daylight' conditions (ie cloudy)
+      if d.hour >= 8 and d.hour <=20 and r.random() > 0.2:
+          # add new dummy data
+          data.append([d, r.randint(30, 100), r.randint(0, 100)])
+
+      # increment time
+      d += timedelta(minutes=30)
+
+
+    return data
 
 
 
@@ -95,22 +130,19 @@ if __name__ == '__main__':
 
     ht = HashTableJK(29)
 
-    test = [0] * ht.current_size
-
-    d = datetime.now()
-    d = d.replace(minute=0, second=0, microsecond=0)
-    d += timedelta(minutes=r.randint(10, 10000))
+    dummy = create_dummy(15)
 
 
-    for i in range(50):
-        d += timedelta(minutes=30)
+    for item in dummy:
+        ht.insert(item)
 
-        if d.hour >= 8 and d.hour <= 20 and r.random() > 0.2:
-            test[ht._get_hash(d)] += 1
+    print('\n\n')
+    print(ht)
+    print('\n\n')
 
-
-    print(''.join([str(x) if x > 0 else '.' for x in test]))
-    print('entries:')
-    print(sum(test))
-    print('collision percent:')
-    print(sum([x-1 if x > 1 else 0 for x in test])/sum(test))
+    #print(''.join([str(x) if x > 0 else '.' for x in test]))
+    #print('entries:')
+    #print(sum(test))
+    #print('collision percent:')
+    #print(sum([x-1 if x > 1 else 0 for x in test])/sum(test))
+    
