@@ -19,9 +19,10 @@ import math
 
 class HashTableJK():
 
-    def __init__(self):
-        self.current_size = 211
+    def __init__(self, init_size):
+        self.current_size = init_size
         self.table = [None] * self.current_size
+
 
     def _get_hash(self, key: datetime):
         # zero out everything but date and convert it to an integer
@@ -45,27 +46,36 @@ class HashTableJK():
         return index
 
 
-
     def _store_data(self, index: int, data: list):
         self.table[index] = data
 
 
+    def _collision(self, index):
+        # default value is None so will return false if nothing there (no collision)
+        return self.table[index]
 
 
 
 
     def insert(self, key: datetime, data: list):
-        #get Hash
-        #check for collision
-        #resolve if necessary
-        #check size
+        # hash key and get index
+        index = self._get_hash(key)
+
+        # if collision, increment index until there is no collision (linear probe)
+        while (_collision(index)):
+            index++
+
+        self._store_data(index, data)
+
+
+        #check contents vs size
         #resize if nec
         pass
 
 
     def get(self, key: datetime):
         #get Hash
-        #remember to check for potential linear probe store
+        #remember to check for potential linear probe store  (ie something is there but not equal to expected?, search until empty slot or success?)
         #return data if found else error/message/default?
         pass
 
@@ -73,11 +83,17 @@ class HashTableJK():
 
 
 
-# main function to make dummy data, test some stuff
+# function to make dummy data
+
+#def create_dummy(count):
+
+
+
+# main function, test some stuff
 
 if __name__ == '__main__':
 
-    ht = HashTableJK()
+    ht = HashTableJK(29)
 
     test = [0] * ht.current_size
 
@@ -86,7 +102,7 @@ if __name__ == '__main__':
     d += timedelta(minutes=r.randint(10, 10000))
 
 
-    for i in range(200):
+    for i in range(50):
         d += timedelta(minutes=30)
 
         if d.hour >= 8 and d.hour <= 20 and r.random() > 0.2:
