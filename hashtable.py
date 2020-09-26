@@ -128,11 +128,12 @@ class HashTableJK():
 
 
     def get(self, key: datetime):
-        #get Hash
-        #remember to check for potential linear probe store  (ie something is there but not equal to expected?, search until empty slot or success?)
-        #return data if found else error/message/default?
-        pass
+        index = self._get_hash(key)
 
+        while (key != self.table[index][0]):
+            index += 1
+
+        return self.table[index]
 
 
 
@@ -219,7 +220,7 @@ if __name__ == '__main__':
 
     for item in dummy:
         ht.insert(item)
-        
+
     # print('\n\n')
     #print(ht)
     #print()
@@ -229,12 +230,12 @@ if __name__ == '__main__':
     '''
 
 
-    # starting small
+    # starting small, lots of data
     start_size = 11
-    dummy_items = 100
+    dummy_items = 10000
 
-    ht = HashTableJK(11)
-    dummy = create_dummy(100)
+    ht = HashTableJK(start_size)
+    dummy = create_dummy(dummy_items)
 
     for item in dummy:
         ht.insert(item)
@@ -247,4 +248,12 @@ if __name__ == '__main__':
     print("Start Size: {}\nEnd Size: {}\nResizes: {}\n".format(start_size, ht.current_size, ht.resize_count))
 
 
-    #resizing about 2 too many times, why?
+    print(ht.get(dummy[100][0]))
+
+    for i in dummy:
+        if i == dummy[100]:
+            print(i)
+            break;
+
+
+    #resizing too many times, why?
