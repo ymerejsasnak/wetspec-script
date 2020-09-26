@@ -9,6 +9,7 @@ Used as part of Category 2 - Data Structures and Algorithms
 
 from datetime import datetime
 from datetime import timedelta
+from time import perf_counter
 
 import random as r
 import math
@@ -96,6 +97,9 @@ class HashTableJK():
         # create new table
         self.table = [None] * self.current_size
 
+        # reset data count, rehash will recount data
+        self.data_count = 0
+
         # iterate through old table, rehashing into new
         for item in old_table:
             if item:
@@ -120,11 +124,9 @@ class HashTableJK():
 
 
         #check contents vs size
-
         if (self.data_count / self.current_size) > 0.5:
             self._resize()
             self._rehash()
-
 
 
     def get(self, key: datetime):
@@ -212,24 +214,6 @@ def is_prime(n):
 
 if __name__ == '__main__':
 
-
-    '''
-    # roughly a year's worth of readings
-    ht = HashTableJK(14009)
-    dummy = create_dummy(7000)
-
-    for item in dummy:
-        ht.insert(item)
-
-    # print('\n\n')
-    #print(ht)
-    #print()
-
-    print("Inserts: {}\nCollisions: {}\nProbes: {}\n".format(7000, ht.collision_count, ht.probe_count))
-
-    '''
-
-
     # starting small, lots of data
     start_size = 11
     dummy_items = 10000
@@ -240,20 +224,39 @@ if __name__ == '__main__':
     for item in dummy:
         ht.insert(item)
 
-    print('\n\n')
-    print(ht)
-    print()
 
     print("Inserts: {}\nCollisions: {}\nProbes: {}\n".format(dummy_items, ht.collision_count, ht.probe_count))
     print("Start Size: {}\nEnd Size: {}\nResizes: {}\n".format(start_size, ht.current_size, ht.resize_count))
 
 
-    print(ht.get(dummy[100][0]))
-
-    for i in dummy:
-        if i == dummy[100]:
-            print(i)
-            break;
 
 
-    #resizing too many times, why?
+
+
+    # perf test ht.get vs linear search through original data (since ordered, should do binary as well)
+
+    timesA = []
+    timesB = []
+
+
+    for test in range(10000):
+        choice = r.randrange(0, dummy_items)
+
+        start = perf_counter()
+        ht.get(dummy[choice][0])
+        perf = perf_counter() - start
+        timesA.append(perf)
+
+        start = perf_counter()
+        for i in dummy:
+            if i == dummy[choice]:
+                break
+        perf = perf_counter() - start
+        timesB.append(perf)
+
+
+    print(sum(timesA))
+    print(sum(timesB))
+
+
+    
