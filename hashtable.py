@@ -21,10 +21,13 @@ class HashTableJK():
 
     def __init__(self, init_size):
         self.current_size = init_size
+        self.data_count = 0
         self.table = [None] * self.current_size
 
         self.collision_count = 0
         self.probe_count = 0
+        self.resize_count = 0
+
 
     def __str__(self):
         output = []
@@ -68,6 +71,7 @@ class HashTableJK():
 
     def _store_data(self, index: int, data: list):
         self.table[index] = data
+        self.data_count += 1
 
 
     def _collision(self, index):
@@ -75,6 +79,27 @@ class HashTableJK():
         return self.table[index]
 
 
+    def _resize(self):
+        # first double the size
+        new_size = self.current_size * 2
+
+        # then increment to next prime value
+        self.current_size = next_prime(new_size)
+
+        self.resize_count += 1
+
+
+    def _rehash(self):
+        # copy old table
+        old_table = self.table[:]
+
+        # create new table
+        self.table = [None] * self.current_size
+
+        # iterate through old table, rehashing into new
+        for item in old_table:
+            if item:
+                self.insert(item)
 
 
     def insert(self, data: list):
@@ -95,8 +120,11 @@ class HashTableJK():
 
 
         #check contents vs size
-        #resize if nec
-        pass
+
+        if (self.data_count / self.current_size) > 0.5:
+            self._resize()
+            self._rehash()
+
 
 
     def get(self, key: datetime):
@@ -137,38 +165,86 @@ def create_dummy(total):
 
 
 
+
+# get next prime number
+def next_prime(n):
+
+    # base case
+    if (n <= 1):
+        return 2
+
+    m = n
+    got_prime = False
+
+    # Loop until is_prime returns true
+    while(not got_prime):
+        m = m + 1
+        got_prime = is_prime(m)
+
+    return m
+
+
+# determine if n is prime
+def is_prime(n):
+
+    # Corner cases
+    if(n <= 1):
+        return False
+    if(n <= 3):
+        return True
+
+    # This is checked so that we can skip
+    # middle five numbers in below loop
+    if(n % 2 == 0 or n % 3 == 0):
+        return False
+
+    for i in range(5,int(math.sqrt(n) + 1), 6):
+        if(n % i == 0 or n % (i + 2) == 0):
+            return False
+
+    return True
+
+
+
+
 # main function, test some stuff
 
 if __name__ == '__main__':
 
+
+    '''
     # roughly a year's worth of readings
     ht = HashTableJK(14009)
     dummy = create_dummy(7000)
 
     for item in dummy:
         ht.insert(item)
-
-   # print('\n\n')
+        
+    # print('\n\n')
     #print(ht)
     #print()
 
     print("Inserts: {}\nCollisions: {}\nProbes: {}\n".format(7000, ht.collision_count, ht.probe_count))
 
-
+    '''
 
 
     # starting small
-    ht = HashTableJK(211)
+    start_size = 11
+    dummy_items = 100
+
+    ht = HashTableJK(11)
     dummy = create_dummy(100)
 
     for item in dummy:
         ht.insert(item)
 
-    #print('\n\n')
-    #print(ht)
-    #print()
+    print('\n\n')
+    print(ht)
+    print()
 
-    print("Inserts: {}\nCollisions: {}\nProbes: {}\n".format(7000, ht.collision_count, ht.probe_count))
+    print("Inserts: {}\nCollisions: {}\nProbes: {}\n".format(dummy_items, ht.collision_count, ht.probe_count))
+    print("Start Size: {}\nEnd Size: {}\nResizes: {}\n".format(start_size, ht.current_size, ht.resize_count))
 
 
-    
+    #resizing about 2 too many times, why?
