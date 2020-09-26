@@ -42,32 +42,26 @@ class HashTableJK():
                 output.append('---\n')
         return ''.join(output)
 
-    def brief(self):
+    def brief(self, linelength):
+        chars = 0
         for item in self.table:
             if item:
                 print('0', end='')
             else:
                 print('_', end='')
+            chars += 1
+            if chars == linelength:
+                print()
+                chars = 0
         print()
 
     def _get_hash(self, key: datetime):
-        # zero out everything but date and convert it to an integer
-        date = key.replace(hour=0, minute=0, second=0, microsecond=0)
-        date = int(date.timestamp())
-
-        # then get hour and minute values separately
-        hour = key.hour
-        minute = key.minute
-
-        # conver to single integer indicating which half hour segment we are in
-        # ex: 8:00 am is 16, 8:30 is 17, 9am is 18, etc.
-        halfhour = hour * 2 + minute//30
-
-        # transform both values mathematically to get hash value
-        value = date // halfhour + halfhour * 11300000000
+        # zero out seconds and microseconds, get date as numeric value
+        date = key.replace(second=0, microsecond=0)
+        date = date.timestamp()
 
         #mod by table size to get actual index value
-        index = int(value) % self.current_size
+        index = int(date) % self.current_size
 
         return index
 
@@ -115,7 +109,6 @@ class HashTableJK():
 
 
 
-
 # function to make dummy data
 
 def create_dummy(total):
@@ -123,7 +116,7 @@ def create_dummy(total):
 
     # arbitrary starting point, randomized a bit
     d = datetime.now()
-    d += timedelta(minutes=r.randint(-100000, 100000))
+    d += timedelta(minutes=r.randint(-999999999, 999999999))
 
     # then 0 the minutes so we're on the 0/30 interval, and 0 sec and micro because unused
     d = d.replace(minute=0, second=0, microsecond=0)
@@ -148,19 +141,34 @@ def create_dummy(total):
 
 if __name__ == '__main__':
 
+    # roughly a year's worth of readings
     ht = HashTableJK(14009)
-
-
     dummy = create_dummy(7000)
-
 
     for item in dummy:
         ht.insert(item)
 
-    print('\n\n')
-    print(ht)
-    print()
+   # print('\n\n')
+    #print(ht)
+    #print()
 
     print("Inserts: {}\nCollisions: {}\nProbes: {}\n".format(7000, ht.collision_count, ht.probe_count))
 
-    ht.brief()
+
+
+
+    # starting small
+    ht = HashTableJK(211)
+    dummy = create_dummy(100)
+
+    for item in dummy:
+        ht.insert(item)
+
+    #print('\n\n')
+    #print(ht)
+    #print()
+
+    print("Inserts: {}\nCollisions: {}\nProbes: {}\n".format(7000, ht.collision_count, ht.probe_count))
+
+
+    
