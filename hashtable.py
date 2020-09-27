@@ -18,46 +18,19 @@ import math
 # and just hash by that so can search for reasonable number of possibles per day (12 hrs daylight, 25 readings max?)
 
 
+
 class HashTableJK():
 
     def __init__(self, init_size):
         self.current_size = init_size
-        self.data_count = 0
         self.table = [None] * self.current_size
 
+        # bookkeeping variables, only 1st is actually used internally )as part of resize check)
+        self.data_count = 0
         self.collision_count = 0
         self.probe_count = 0
         self.resize_count = 0
 
-
-    def __str__(self):
-        output = []
-        hashes = []
-        for item in self.table:
-            if item: # ie not None
-                next_hash = self._get_hash(item[0])
-                if next_hash in hashes:
-                    collide = '*'
-                else:
-                    collide = ''
-                    hashes.append(next_hash)
-                output.append(collide + str(next_hash) + '   ' + str(item) + '\n')
-            else:
-                output.append('---\n')
-        return ''.join(output)
-
-    def brief(self, linelength):
-        chars = 0
-        for item in self.table:
-            if item:
-                print('0', end='')
-            else:
-                print('_', end='')
-            chars += 1
-            if chars == linelength:
-                print()
-                chars = 0
-        print()
 
     def _get_hash(self, key: datetime):
         # zero out seconds and microseconds, get date as numeric value
@@ -142,7 +115,6 @@ class HashTableJK():
 
 
 
-
 # function to make dummy data
 
 def create_dummy(total):
@@ -152,13 +124,13 @@ def create_dummy(total):
     d = datetime.now()
     d += timedelta(minutes=r.randint(-999999999, 999999999))
 
-    # then 0 the minutes so we're on the 0/30 interval, and 0 sec and micro because unused
+    # then 0 the minutes so we're on the 0/30 interval, and 0 seconds and microseconds because we don't use them
     d = d.replace(minute=0, second=0, microsecond=0)
 
     # loop until desired # of data points collected
     while (len(data) < total):
 
-      # check if daylight hours and a little random to simulate lack of 'daylight' conditions (ie cloudy)
+      # check if "daylight hours" and add a little randomness to simulate lack of 'daylight' conditions (ie cloudy)
       if d.hour >= 8 and d.hour <=20 and r.random() > 0.2:
           # add new dummy data
           data.append([d, r.randint(0, 100), r.randint(0, 100)])
@@ -166,34 +138,33 @@ def create_dummy(total):
       # increment time
       d += timedelta(minutes=30)
 
-
     return data
 
 
 
 
-# get next prime number
+# get next prime number after n
+
 def next_prime(n):
 
     # base case
     if (n <= 1):
         return 2
 
-    m = n
     got_prime = False
 
     # Loop until is_prime returns true
     while(not got_prime):
-        m = m + 1
-        got_prime = is_prime(m)
+        n = n + 1
+        got_prime = is_prime(n)
 
-    return m
+    return n
 
 
 # determine if n is prime
+
 def is_prime(n):
 
-    # Corner cases
     if(n <= 1):
         return False
     if(n <= 3):
@@ -215,6 +186,7 @@ def is_prime(n):
 # main function, demo stuff
 
 if __name__ == '__main__':
+
 
     # starting small, lots of data
     start_size = 11
