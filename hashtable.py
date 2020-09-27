@@ -130,9 +130,12 @@ class HashTableJK():
 
 
     def get(self, key: datetime):
+        result = None
+
         index = self._get_hash(key)
 
-        while (key != self.table[index][0]):
+        # if current item does not match key and is not empty, increment
+        while (self.table[index] != None and key != self.table[index][0]):
             index += 1
 
         return self.table[index]
@@ -209,8 +212,7 @@ def is_prime(n):
 
 
 
-
-# main function, test some stuff
+# main function, demo stuff
 
 if __name__ == '__main__':
 
@@ -225,38 +227,50 @@ if __name__ == '__main__':
         ht.insert(item)
 
 
-    print("Inserts: {}\nCollisions: {}\nProbes: {}\n".format(dummy_items, ht.collision_count, ht.probe_count))
+    print("\nInserts: {}\nCollisions: {}\nProbes: {}".format(dummy_items, ht.collision_count, ht.probe_count))
     print("Start Size: {}\nEnd Size: {}\nResizes: {}\n".format(start_size, ht.current_size, ht.resize_count))
 
 
+    # dict for comparison
+    dummy_dict = {}
+    for item in dummy:
+        dummy_dict[item[0]] = item
 
 
+    linear_times = []
+    pydict_times = []
+    hashget_times = []
+
+    test_count = 10000
 
 
-    # perf test ht.get vs linear search through original data (since ordered, should do binary as well)
-
-    timesA = []
-    timesB = []
-
-
-    for test in range(10000):
+    for test in range(test_count):
         choice = r.randrange(0, dummy_items)
 
-        start = perf_counter()
-        ht.get(dummy[choice][0])
-        perf = perf_counter() - start
-        timesA.append(perf)
-
+        # linear search  (if I had more time would be better to compare against binary search)
         start = perf_counter()
         for i in dummy:
             if i == dummy[choice]:
+                item = i
                 break
         perf = perf_counter() - start
-        timesB.append(perf)
+        linear_times.append(perf)
+
+        # my hash lookup
+        start = perf_counter()
+        item = ht.get(dummy[choice][0])
+        perf = perf_counter() - start
+        hashget_times.append(perf)
+
+        # dictionary lookup
+        start = perf_counter()
+        item = dummy_dict.get(dummy[choice][0])
+        perf = perf_counter() - start
+        pydict_times.append(perf)
 
 
-    print(sum(timesA))
-    print(sum(timesB))
 
 
-    
+    print("\nLinear search array for item.\n\tPerformed {} times for a total time of {} seconds.".format(test_count, sum(linear_times)))
+    print("Retrieving from my hash table.\n\tPerformed {} times for a total time of {} seconds.".format(test_count, sum(hashget_times)))
+    print("Comparing to Python dictionary.\n\tPerformed {} times for a total time of {} seconds.\n".format(test_count, sum(pydict_times)))
