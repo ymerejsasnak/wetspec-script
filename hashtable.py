@@ -6,7 +6,6 @@ Raspberry Pi "WetSpec" Script - Hash Table Implementation
 Used as part of Category 2 - Data Structures and Algorithms
 '''
 
-
 from datetime import datetime
 from datetime import timedelta
 from time import perf_counter
@@ -14,25 +13,35 @@ from time import perf_counter
 import random as r
 import math
 
-# NOTE - will have to be sure wetspec takes readings exactly on the half hour (minutes wise, can drop sec and micro)
-# and just hash by that so can search for reasonable number of possibles per day (12 hrs daylight, 25 readings max?)
-
-
 
 class HashTableJK():
 
     def __init__(self, init_size):
+        '''
+        Initialize table and related variables
+        '''
         self.current_size = init_size
         self.table = [None] * self.current_size
 
-        # bookkeeping variables, only 1st is actually used internally )as part of resize check)
+        # keep count of data items for resize check
         self.data_count = 0
+
+        # other bookkeeping variables just for demoing/testing
         self.collision_count = 0
         self.probe_count = 0
         self.resize_count = 0
 
 
     def _get_hash(self, key: datetime):
+        '''
+        Hashes a date/time key
+
+        Args:
+            key - datetime object
+        Returns:
+            table index number
+        '''
+
         # zero out seconds and microseconds, get date as numeric value
         date = key.replace(second=0, microsecond=0)
         date = date.timestamp()
@@ -44,16 +53,35 @@ class HashTableJK():
 
 
     def _store_data(self, index: int, data: list):
+        '''
+        Store data in Table and increment data count
+
+        Args:
+            index - table index to insert at
+            data - list of data points to insert
+        '''
         self.table[index] = data
         self.data_count += 1
 
 
     def _collision(self, index):
-        # default value is None so will return false if nothing there (no collision)
-        return self.table[index]
+        '''
+        Check for table collision
+
+        Args:
+            index - table index
+        Returns:
+            False if index is currently empty
+            True if index already has data
+        '''
+        return self.table[index] # default table value is None (a 'false' value)
 
 
     def _resize(self):
+        '''
+        Resizes table by doubling its size then increasing the Size
+        until the next prime valued size is reached
+        '''
         # first double the size
         new_size = self.current_size * 2
 
@@ -64,6 +92,10 @@ class HashTableJK():
 
 
     def _rehash(self):
+        '''
+        Rehash the table by creating new table at new size and inserting
+        items all over again
+        '''
         # copy old table
         old_table = self.table[:]
 
@@ -80,6 +112,12 @@ class HashTableJK():
 
 
     def insert(self, data: list):
+        '''
+        Public method to insert data into table
+
+        Args:
+            data as a list
+        '''
         # get key from data (1st item in list is datetime)
         key = data[0]
 
@@ -95,14 +133,21 @@ class HashTableJK():
 
         self._store_data(index, data)
 
-
-        #check contents vs size
+        #check contents vs size - resize and rehash if necessary
         if (self.data_count / self.current_size) > 0.5:
             self._resize()
             self._rehash()
 
 
     def get(self, key: datetime):
+        '''
+        Public method to search for/retrieve data from table
+
+        Args:
+            key - datetime object
+        Returns:
+            item at index of hashed key ('None' if no data)
+        '''
         result = None
 
         index = self._get_hash(key)
@@ -114,39 +159,11 @@ class HashTableJK():
         return self.table[index]
 
 
-
-# function to make dummy data
-
-def create_dummy(total):
-    data = []
-
-    # arbitrary starting point, randomized a bit
-    d = datetime.now()
-    d += timedelta(minutes=r.randint(-999999999, 999999999))
-
-    # then 0 the minutes so we're on the 0/30 interval, and 0 seconds and microseconds because we don't use them
-    d = d.replace(minute=0, second=0, microsecond=0)
-
-    # loop until desired # of data points collected
-    while (len(data) < total):
-
-      # check if "daylight hours" and add a little randomness to simulate lack of 'daylight' conditions (ie cloudy)
-      if d.hour >= 8 and d.hour <=20 and r.random() > 0.2:
-          # add new dummy data
-          data.append([d, r.randint(0, 100), r.randint(0, 100)])
-
-      # increment time
-      d += timedelta(minutes=30)
-
-    return data
-
-
-
-
+'''
+Prime number helper functions
+'''
 # get next prime number after n
-
 def next_prime(n):
-
     # base case
     if (n <= 1):
         return 2
@@ -162,7 +179,6 @@ def next_prime(n):
 
 
 # determine if n is prime
-
 def is_prime(n):
 
     if(n <= 1):
@@ -183,43 +199,75 @@ def is_prime(n):
 
 
 
-# main function, demo stuff
+'''
+Main function
+creates dummy data and performs simple
+demonstration and performance tests
+'''
 
 if __name__ == '__main__':
 
+    # function to make dummy data
+    def create_dummy(total):
+        data = []
 
-    # starting small, lots of data
+        # arbitrary starting point, randomized a bit
+        d = datetime.now()
+        d += timedelta(minutes=r.randint(-999999999, 999999999))
+
+        # then 0 the minutes so we're on the 0/30 interval, and 0 seconds and microseconds because we don't use them
+        d = d.replace(minute=0, second=0, microsecond=0)
+
+        # loop until desired # of data points collected
+        while (len(data) < total):
+
+          # check if "daylight hours" and add a little randomness to simulate lack of 'daylight' conditions (ie cloudy)
+          if d.hour >= 8 and d.hour <=20 and r.random() > 0.2:
+              # add new dummy data
+              data.append([d, r.randint(0, 100), r.randint(0, 100)])
+
+          # increment time
+          d += timedelta(minutes=30)
+
+        return data
+
+
+
+    # Initializations
     start_size = 11
     dummy_items = 10000
 
     ht = HashTableJK(start_size)
     dummy = create_dummy(dummy_items)
 
+    # Build table with dummy data
     for item in dummy:
         ht.insert(item)
 
-
+    # display some stats
     print("\nInserts: {}\nCollisions: {}\nProbes: {}".format(dummy_items, ht.collision_count, ht.probe_count))
     print("Start Size: {}\nEnd Size: {}\nResizes: {}\n".format(start_size, ht.current_size, ht.resize_count))
 
-
-    # dict for comparison
+    # create Python dict for comparison
     dummy_dict = {}
     for item in dummy:
         dummy_dict[item[0]] = item
 
 
+
+    # Lists to store individual test times
     linear_times = []
     pydict_times = []
     hashget_times = []
 
     test_count = 10000
 
-
+    # perform tests
     for test in range(test_count):
         choice = r.randrange(0, dummy_items)
 
-        # linear search  (if I had more time would be better to compare against binary search)
+        # linear search  (if I had more time it would be better to compare against binary
+        # search since we know the datetimes will automatically be in order)
         start = perf_counter()
         for i in dummy:
             if i == dummy[choice]:
@@ -240,9 +288,7 @@ if __name__ == '__main__':
         perf = perf_counter() - start
         pydict_times.append(perf)
 
-
-
-
+    # print results
     print("\nLinear search array for item.\n\tPerformed {} times for a total time of {} seconds.".format(test_count, sum(linear_times)))
     print("Retrieving from my hash table.\n\tPerformed {} times for a total time of {} seconds.".format(test_count, sum(hashget_times)))
     print("Comparing to Python dictionary.\n\tPerformed {} times for a total time of {} seconds.\n".format(test_count, sum(pydict_times)))
